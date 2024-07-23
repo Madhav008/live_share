@@ -35,6 +35,8 @@ Obtain your YouTube Live Stream key from the YouTube dashboard.
 ### Step 4: Set Up the Backend
 
 Navigate to the `backend` folder in the project directory and follow the instructions provided in the `README.md` file to set up and run the Go server.
+Open the main.go and replace the RTMP url to stream on your own youtube/facebook channel 
+![image](https://github.com/user-attachments/assets/a7704db8-414b-4e82-9e88-3315b1897e81)
 
 ## 2. Setting Up the Flutter App
 
