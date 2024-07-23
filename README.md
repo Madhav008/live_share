@@ -1,7 +1,7 @@
 # Live Share
 
-A new Flutter project to stream screen recordings to a Go server, which then uploads the videos to YouTube Live.
-
+A new Flutter project to stream screen recordings to a Go server, which then uploads the videos to YouTube Live
+![Backend Project](https://github.com/Madhav008/Live-Server)
 ## Getting Started
 
 This project demonstrates how to create a Flutter app that records the screen, sends video chunks to a Go server, and streams live to YouTube.
