@@ -1,10 +1,10 @@
 import 'dart:async';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_recording/flutter_screen_recording.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:quiver/async.dart';
 import 'package:http/http.dart' as http;
+import 'package:quiver/async.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,30 +15,28 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool recording = false;
+  Timer? _recordingTimer;
   int _time = 0;
-
-  requestPermissions() async {
-    if (await Permission.storage.request().isDenied) {
-      await Permission.storage.request();
-    }
-    if (await Permission.photos.request().isDenied) {
-      await Permission.photos.request();
-    }
-    if (await Permission.microphone.request().isDenied) {
-      await Permission.microphone.request();
-    }
-    // await PermissionHandler().requestPermissions([
-    //   PermissionGroup.storage,
-    //   PermissionGroup.photos,
-    //   PermissionGroup.microphone,
-    // ]);
-  }
 
   @override
   void initState() {
     super.initState();
-    requestPermissions();
     startTimer();
+  }
+
+  Future<void> requestPermissions() async {
+    final status = await [
+      Permission.storage,
+      Permission.photos,
+      Permission.microphone,
+    ].request();
+
+    if (status[Permission.storage] != PermissionStatus.granted ||
+        status[Permission.photos] != PermissionStatus.granted ||
+        status[Permission.microphone] != PermissionStatus.granted) {
+      // Handle permission not granted scenario
+      print("Some permissions are not granted.");
+    }
   }
 
   void startTimer() {
@@ -72,57 +70,68 @@ class _MyAppState extends State<MyApp> {
             !recording
                 ? Center(
                     child: ElevatedButton(
-                      child: Text("Record Screen & audio"),
+                      child: Text("Record Screen & Audio"),
                       onPressed: () => startScreenRecord(true),
                     ),
                   )
                 : Center(
                     child: ElevatedButton(
                       child: Text("Stop Live Stream"),
-                      onPressed: () => stopLiveStream(),
+                      onPressed: stopLiveStream,
                     ),
-                  )
+                  ),
           ],
         ),
       ),
     );
   }
 
-  startScreenRecord(bool audio) async {
+  Future<void> startScreenRecord(bool audio) async {
     bool start = false;
 
+    // Start recording
+    if (audio) {
       start = await FlutterScreenRecording.startRecordScreenAndAudio("Title");
-    
+    } else {
+      start = await FlutterScreenRecording.startRecordScreen("Title");
+    }
 
     if (start) {
-      setState(() => recording = !recording);
-      Timer.periodic(Duration(seconds: 6), (timer) async {
+      setState(() => recording = true);
+
+      // Timer to stop and restart recording every 6 seconds
+      _recordingTimer = Timer.periodic(Duration(seconds: 6), (timer) async {
         if (recording) {
-          stopScreenRecord();
-          start =
-              await FlutterScreenRecording.startRecordScreenAndAudio("Title");
+          await stopScreenRecord();
+          bool restarted = audio
+              ? await FlutterScreenRecording.startRecordScreenAndAudio("Title")
+              : await FlutterScreenRecording.startRecordScreen("Title");
+          if (!restarted) {
+            // If restarting failed, cancel the timer and stop recording
+            timer.cancel();
+            setState(() => recording = false);
+          }
         } else {
           timer.cancel();
         }
       });
     }
-
-    return start;
   }
 
-  stopScreenRecord() async {
+  Future<void> stopScreenRecord() async {
     String path = await FlutterScreenRecording.stopRecordScreen;
-    print("Opening video");
-    print(path);
-    // OpenFile.open(path);
+    print("Video saved at: $path");
 
-    await streamChunk(path);
+    if (path.isNotEmpty) {
+      await streamChunk(path);
+    }
   }
 
-  stopLiveStream() async {
+  Future<void> stopLiveStream() async {
     setState(() {
-      recording = !recording;
+      recording = false;
     });
+    _recordingTimer?.cancel();
   }
 
   Future<void> streamChunk(String filePath) async {
