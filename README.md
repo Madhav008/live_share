@@ -53,6 +53,8 @@ Ensure that your app requests the necessary permissions for storage, microphone,
 The app uses the `flutter_screen_recording` package to record the screen and audio. 
 
 ### Step 4: Send Video Chunks to the Server
+Before sending to the server change the server url from the App then run the App
+![image](https://github.com/user-attachments/assets/2bea09e8-8b0f-42f8-83e0-77d6f77bfce8)
 
 The app records 6-second video chunks and sends them to the Go server at regular intervals. The server processes these chunks and streams them to YouTube.
 
@@ -78,6 +80,7 @@ Connect your device and run:
 flutter run
 ```
 
-## Conclusion
+## DEMO
+![Live Stream URL](https://www.youtube.com/watch?v=o_Dld1ePbfc)
+![Video Demo Link](https://youtu.be/-NQQB6x_J_s)
 
-By following these steps, you can set up a Flutter app that streams screen recordings to a Go server, which then uploads the videos to YouTube Live. For more details, refer to the individual `README.md` files in the `backend` and Flutter project directories.
